@@ -1,4 +1,4 @@
-use crate::cast::{calc_result_to_array_node, NumberOrArray};
+use crate::cast::{calc_result_to_array_node, unwrap_scalar_array, NumberOrArray};
 use crate::constants::{LAST_COLUMN, LAST_ROW};
 use crate::expressions::parser::ArrayNode;
 use crate::expressions::types::CellReferenceIndex;
@@ -389,7 +389,7 @@ impl<'a> Model<'a> {
         if args.len() > 3 || args.len() < 2 {
             return CalcResult::new_args_number_error(cell);
         }
-        let target = self.evaluate_node_in_context(&args[0], cell);
+        let target = unwrap_scalar_array(self.evaluate_node_in_context(&args[0], cell), cell);
         if target.is_error() {
             return target;
         }
@@ -490,7 +490,10 @@ impl<'a> Model<'a> {
         if args.len() > 4 || args.len() < 3 {
             return CalcResult::new_args_number_error(cell);
         }
-        let lookup_value = self.evaluate_node_in_context(&args[0], cell);
+        let lookup_value = unwrap_scalar_array(
+            self.evaluate_node_in_context(&args[0], cell),
+            cell,
+        );
         if lookup_value.is_error() {
             return lookup_value;
         }
@@ -554,7 +557,10 @@ impl<'a> Model<'a> {
         if args.len() > 4 || args.len() < 3 {
             return CalcResult::new_args_number_error(cell);
         }
-        let lookup_value = self.evaluate_node_in_context(&args[0], cell);
+        let lookup_value = unwrap_scalar_array(
+            self.evaluate_node_in_context(&args[0], cell),
+            cell,
+        );
         if lookup_value.is_error() {
             return lookup_value;
         }
@@ -628,7 +634,7 @@ impl<'a> Model<'a> {
         if args.len() > 3 || args.len() < 2 {
             return CalcResult::new_args_number_error(cell);
         }
-        let target = self.evaluate_node_in_context(&args[0], cell);
+        let target = unwrap_scalar_array(self.evaluate_node_in_context(&args[0], cell), cell);
         if target.is_error() {
             return target;
         }

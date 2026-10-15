@@ -39,6 +39,35 @@ pub(crate) fn calc_result_to_array_node(result: CalcResult) -> ArrayNode {
     }
 }
 
+/// Collapses a 1x1 array to its single element, the way Excel treats an array
+/// in a scalar argument position. Any larger array is `#VALUE!`.
+pub(crate) fn unwrap_scalar_array(value: CalcResult, cell: CellReferenceIndex) -> CalcResult {
+    match value {
+        CalcResult::Array(rows) => {
+            if rows.len() == 1 && rows.first().is_some_and(|row| row.len() == 1) {
+                match &rows[0][0] {
+                    ArrayNode::Number(n) => CalcResult::Number(*n),
+                    ArrayNode::Boolean(b) => CalcResult::Boolean(*b),
+                    ArrayNode::String(s) => CalcResult::String(s.clone()),
+                    ArrayNode::Error(e) => CalcResult::Error {
+                        error: e.clone(),
+                        origin: cell,
+                        message: "Array element".to_string(),
+                    },
+                    ArrayNode::Empty => CalcResult::EmptyCell,
+                }
+            } else {
+                CalcResult::Error {
+                    error: Error::VALUE,
+                    origin: cell,
+                    message: "Expected a single value".to_string(),
+                }
+            }
+        }
+        other => other,
+    }
+}
+
 /// Converts a single array element to a string using the same rules as
 /// [`Model::cast_to_string`]. Errors propagate.
 pub(crate) fn array_node_to_string(node: &ArrayNode) -> Result<String, Error> {
